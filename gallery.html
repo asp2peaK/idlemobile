@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{background:#1a1410;margin:0}#g{display:grid;grid-template-columns:repeat(4,180px);gap:8px;padding:8px}.c{background:#2a2018;border-radius:8px;color:#ddd;font:12px sans-serif;text-align:center;padding:4px}.c svg{width:160px;height:160px}.i{display:grid;grid-template-columns:repeat(10,64px);gap:6px;padding:8px}.i svg{width:60px;height:60px;background:#2a2018;border-radius:8px}</style></head>
+<body><div id="root"></div><script type="module">
+import { createRoot } from 'react-dom/client';
+import { createElement as h } from 'react';
+import MonsterArt from '/src/art/Monster.jsx';
+import { ItemIcon, HeroIcon, Icon } from '/src/art/Icons.jsx';
+import { makeItem } from '/src/engine/loot.js';
+import { HEROES } from '/src/engine/data.js';
+import '/src/styles.css';
+const arches=['slime','goblin','skull','beast','eye','spider','ghost','golem','demon','bat','dragon','mimic'];
+const specs = arches.map((a,i)=>({arch:a,hue:(i*37)%360,sat:45,light:40,eyes:1+i%3,horns:i%2==0,spikes:i%3==0,scar:true,crown:i%4==1,aura:i%4==1?'#ff3a2a':null,glow:'#9a7aff',seed:i*99}));
+const items=[]; ['weapon','helm','armor','amulet','ring','boots'].forEach((s,si)=>{for(let r=0;r<6;r++) items.push(makeItem(si*10+r, r*20, r, s));});
+const misc=['rage','clover','coins','fist','d20','target','scroll','blade','hoard','die','hourglass','tome','anvil','bag','banner','prism','chest','dust','lock','swords','hero','backpack','gem'];
+createRoot(document.getElementById('root')).render(h('div',null,
+  h('div',{id:'g'},specs.map((s,i)=>h('div',{className:'c',key:i},h(MonsterArt,{spec:s}),s.arch))),
+  h('div',{className:'i'},items.map(it=>h('div',{key:it.id},h(ItemIcon,{item:it})))),
+  h('div',{className:'i'},HEROES.map(x=>h('div',{key:x.id},h(HeroIcon,{id:x.id,c:x.c})))),
+  h('div',{className:'i'},misc.map(m=>h('div',{key:m},h(Icon,{name:m}))))
+));
+</script></body></html>
