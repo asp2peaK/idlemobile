@@ -3,48 +3,110 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#2b1d12">
+  <meta name="theme-color" content="#0f0b09">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>Королевство Idle</title>
+  <title>Кости Судьбы</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ruslan+Display&family=Cormorant+SC:wght@600;700&family=Alegreya+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
-    <header class="top">
-      <div class="title">🏰 <span id="kingdomName">Королевство</span></div>
-      <div class="gold"><span class="coin">🪙</span><span id="gold">0</span></div>
-      <div class="rate"><span id="gps">0</span> / сек · 👑 <span id="crowns">0</span></div>
-    </header>
+<div id="app">
 
-    <section class="castle-zone">
-      <button id="tapBtn" class="tap" aria-label="Собрать налоги">
-        <span class="castle">🏰</span>
-      </button>
-      <div class="tap-hint">Тапай — собирай налоги (+<span id="tapValue">1</span>)</div>
-      <button id="merchant" class="merchant hidden">🧳</button>
-    </section>
-
-    <nav class="tabs">
-      <button class="tab active" data-tab="buildings">Постройки</button>
-      <button class="tab" data-tab="upgrades">Улучшения</button>
-      <button class="tab" data-tab="glory">Слава</button>
-    </nav>
-
-    <main>
-      <div class="buy-mode">
-        Покупать:
-        <button class="mode active" data-mode="1">×1</button>
-        <button class="mode" data-mode="10">×10</button>
-        <button class="mode" data-mode="max">Макс</button>
+  <!-- Верхняя панель -->
+  <header class="hud">
+    <div class="hud-gold">
+      <span class="coin"></span>
+      <div>
+        <div class="hud-num" id="gold">0</div>
+        <div class="hud-sub"><span id="gps">0</span>/сек</div>
       </div>
-      <div id="buildings" class="panel"></div>
-      <div id="upgrades" class="panel hidden"></div>
-      <div id="glory" class="panel hidden"></div>
-    </main>
+    </div>
+    <div class="hud-title">Кости Судьбы</div>
+    <div class="hud-shards" title="Осколки судьбы">
+      <span class="shard-ico">◆</span><span id="shards">0</span>
+    </div>
+  </header>
 
-    <div id="toast" class="toast hidden"></div>
-    <div id="modal" class="modal hidden"><div class="modal-box" id="modalBox"></div></div>
-  </div>
-  <script src="game.js"></script>
+  <!-- Арена -->
+  <section class="arena" id="arena">
+    <div class="torch left"></div><div class="torch right"></div>
+
+    <div class="floor-bar">
+      <button class="floor-nav" id="floorPrev" aria-label="Назад">‹</button>
+      <div class="floor-info">
+        <div class="biome" id="biome">Подземелье</div>
+        <div class="floor-label">Этаж <b id="floorNum">1</b></div>
+        <div class="pips" id="pips"></div>
+      </div>
+      <button class="floor-nav" id="floorNext" aria-label="Вперёд">›</button>
+    </div>
+
+    <div class="monster-wrap" id="monsterWrap">
+      <div class="boss-timer hidden" id="bossTimer"><div class="bt-fill" id="bossFill"></div><span id="bossTime">30</span></div>
+      <div class="monster-glow"></div>
+      <div class="monster" id="monster">👺</div>
+      <div class="floats" id="floats"></div>
+    </div>
+
+    <div class="monster-card">
+      <div class="m-name"><span id="mName">Гоблин</span> <span class="ac" title="Класс доспеха"><b id="mAc">10</b></span></div>
+      <div class="hp"><div class="hp-fill" id="hpFill"></div><div class="hp-text" id="hpText">10 / 10</div></div>
+    </div>
+
+    <button class="chest hidden" id="chest" aria-label="Сундук">
+      <svg viewBox="0 0 64 56"><path d="M6 24 Q32 2 58 24 V50 H6Z" fill="#6b3b1d" stroke="#2a150a" stroke-width="3"/><rect x="6" y="24" width="52" height="26" fill="#83492a" stroke="#2a150a" stroke-width="3"/><rect x="4" y="22" width="56" height="6" fill="#c9a24a" stroke="#2a150a" stroke-width="2"/><rect x="27" y="26" width="10" height="12" rx="2" fill="#e8c766" stroke="#2a150a" stroke-width="2"/><rect x="14" y="24" width="5" height="26" fill="#c9a24a"/><rect x="45" y="24" width="5" height="26" fill="#c9a24a"/></svg>
+    </button>
+
+    <div class="bottom-arena">
+      <div class="abilities" id="abilities"></div>
+      <button class="d20-btn" id="rollBtn" aria-label="Атаковать">
+        <svg viewBox="0 0 100 100" class="d20" id="d20">
+          <polygon class="d20-outer" points="50,3 91,26.5 91,73.5 50,97 9,73.5 9,26.5"/>
+          <polygon class="d20-face" points="50,22 77,68 23,68"/>
+          <polyline class="d20-edge" points="50,3 50,22 91,26.5 77,68 91,73.5 50,97 50,97 23,68 9,73.5 23,68 9,26.5 50,22"/>
+          <line class="d20-edge" x1="77" y1="68" x2="50" y2="97"/>
+          <line class="d20-edge" x1="23" y1="68" x2="50" y2="97"/>
+          <text x="50" y="58" class="d20-num" id="d20num">20</text>
+        </svg>
+        <span class="roll-caption" id="rollCaption">Тапай!</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Панели -->
+  <main class="panels">
+    <div class="panel" id="p-party">
+      <div class="panel-head">
+        <h2>Отряд</h2>
+        <div class="seg" id="buyMode">
+          <button data-m="1" class="on">×1</button><button data-m="10">×10</button><button data-m="max">Макс</button>
+        </div>
+      </div>
+      <div id="heroList"></div>
+    </div>
+
+    <div class="panel hidden" id="p-you">
+      <div class="panel-head"><h2>Твой персонаж</h2></div>
+      <div id="youList"></div>
+    </div>
+
+    <div class="panel hidden" id="p-glory">
+      <div class="panel-head"><h2>Новая кампания</h2></div>
+      <div id="gloryBox"></div>
+    </div>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabb on" data-p="party"><span class="ti">⚔</span>Отряд</button>
+    <button class="tabb" data-p="you"><span class="ti">🎲</span>Герой</button>
+    <button class="tabb" data-p="glory"><span class="ti">◆</span>Слава</button>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+  <div id="modal" class="modal hidden"><div class="modal-box" id="modalBox"></div></div>
+</div>
+<script src="game.js"></script>
 </body>
 </html>
