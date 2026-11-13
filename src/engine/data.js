@@ -6,18 +6,18 @@ export const HEROES = [
     perk: 'Скрытая атака: крит на 19–20, урон ×3' },
   { id: 'ranger',    name: 'Следопыт',  c: '#62a850', die: 8,  n: 1, int: 1.2, power: 12,     cost: 900,    hit: 6,
     perk: 'Меткость: +6 к попаданию' },
-  { id: 'cleric',    name: 'Жрец',      c: '#e6b440', die: 6,  n: 1, int: 2.0, power: 50,     cost: 7000,   hit: 2, goldPct: 2,
-    perk: 'Благодать: +2% золота за уровень' },
+  { id: 'cleric',    name: 'Жрец',      c: '#e6b440', die: 6,  n: 1, int: 2.0, power: 50,     cost: 7000,   hit: 2, goldPct: 2, heal: 1,
+    perk: 'Лечение: лечит отряд каждую атаку, +2% золота за ур.' },
   { id: 'wizard',    name: 'Волшебник', c: '#5a86ee', die: 12, n: 1, int: 3.0, power: 260,    cost: 6e4,    hit: 0, auto: true,
     perk: 'Огненный шар: всегда попадает' },
-  { id: 'paladin',   name: 'Паладин',   c: '#eadba6', die: 10, n: 1, int: 2.0, power: 900,    cost: 5e5,    hit: 3, critMul: 4,
-    perk: 'Божественная кара: крит ×4' },
+  { id: 'paladin',   name: 'Паладин',   c: '#eadba6', die: 10, n: 1, int: 2.0, power: 900,    cost: 5e5,    hit: 3, critMul: 4, acPer: 10,
+    perk: 'Аура защиты: +1 КД отряда за 10 ур., крит ×4' },
   { id: 'bard',      name: 'Бард',      c: '#dc64aa', die: 6,  n: 1, int: 2.5, power: 3000,   cost: 4e6,    hit: 2, dmgPct: 1,
     perk: 'Вдохновение: +1% урона всем за уровень' },
-  { id: 'barbarian', name: 'Варвар',    c: '#de7a32', die: 12, n: 1, int: 1.4, power: 1.6e4,  cost: 3e7,    hit: 2, adv: true,
-    perk: 'Безрассудство: всегда с преимуществом' },
-  { id: 'druid',     name: 'Друид',     c: '#3c9a72', die: 8,  n: 3, int: 2.5, power: 6e4,    cost: 2.5e8,  hit: 3,
-    perk: 'Дикий облик: бросает 3d8' },
+  { id: 'barbarian', name: 'Варвар',    c: '#de7a32', die: 12, n: 1, int: 1.4, power: 1.6e4,  cost: 3e7,    hit: 2, adv: true, hpPct: 1,
+    perk: 'Стойкость: +1% ХП отряда за ур., всегда с преимуществом' },
+  { id: 'druid',     name: 'Друид',     c: '#3c9a72', die: 8,  n: 3, int: 2.5, power: 6e4,    cost: 2.5e8,  hit: 3, heal: 0.5,
+    perk: 'Дикий облик: 3d8, немного лечит отряд' },
   { id: 'warlock',   name: 'Колдун',    c: '#a050ea', die: 20, n: 1, int: 2.0, power: 4e5,    cost: 2e9,    hit: 4, critMin: 18,
     perk: 'Мистический заряд: крит на 18–20' },
   // Секретные герои — открываются глубоко в подземелье
@@ -28,7 +28,7 @@ export const HEROES = [
   { id: 'godslayer', name: 'Богоборец', c: '#ff3030', die: 20, n: 4, int: 2.5, power: 5e14,   cost: 1e28,   hit: 8, critMin: 17, critMul: 5, unlock: 160,
     perk: 'Убийца богов: 4d20, крит на 17–20 ×5' },
 ];
-export const HERO_GROWTH = 1.07;
+export const HERO_GROWTH = 1.075;
 export const HERO_MILESTONES = [10, 25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 900, 1000];
 
 // =============== Твой персонаж ===============
@@ -86,19 +86,89 @@ export const ABILITIES = [
 
 // =============== Реликвии (престиж) ===============
 export const RELICS = [
-  { id: 'blade',     name: 'Клинок предков',     icon: 'blade',     base: 1, growth: 1.35, max: Infinity, desc: l => `+${l * 25}% урона` },
-  { id: 'greed',     name: 'Жадность дракона',   icon: 'hoard',     base: 1, growth: 1.35, max: Infinity, desc: l => `+${l * 20}% золота` },
-  { id: 'luck',      name: 'Кость удачи',        icon: 'die',       base: 3, growth: 1.9,  max: 10,       desc: l => `+${l} к удаче (редкость лута)` },
-  { id: 'hourglass', name: 'Песочные часы',      icon: 'hourglass', base: 2, growth: 1.7,  max: 10,       desc: l => `+${l * 3} сек на босса` },
-  { id: 'tome',      name: 'Фолиант гильдии',    icon: 'tome',      base: 3, growth: 1.8,  max: 12,       desc: l => `Найм героев дешевле на ${Math.round((1 - 0.95 ** l) * 100)}%` },
-  { id: 'forge',     name: 'Горн дварфов',       icon: 'anvil',     base: 2, growth: 1.8,  max: 8,        desc: l => `Сложность заточки −${l}` },
-  { id: 'bag',       name: 'Бездонная сумка',    icon: 'bag',       base: 2, growth: 2,    max: 6,        desc: l => `+${l * 10} мест в инвентаре` },
-  { id: 'banner',    name: 'Знамя похода',       icon: 'banner',    base: 2, growth: 2.2,  max: 15,       desc: l => l ? `Старт кампании с ${fmtSimple(100 * 10 ** l)} золота` : 'Стартовое золото' },
-  { id: 'prism',     name: 'Призма судьбы',      icon: 'prism',     base: 5, growth: 1.6,  max: Infinity, desc: l => `+${l * 10}% осколков за кампанию` },
+  { id: 'blade',     name: 'Клинок предков',     icon: 'blade',     base: 2, growth: 1.55, max: Infinity, desc: l => `+${l * 20}% урона` },
+  { id: 'aegis',     name: 'Эгида',              icon: 'shield',    base: 2, growth: 1.55, max: Infinity, desc: l => `+${l * 20}% ХП отряда` },
+  { id: 'greed',     name: 'Жадность дракона',   icon: 'hoard',     base: 2, growth: 1.55, max: Infinity, desc: l => `+${l * 15}% золота` },
+  { id: 'heir',      name: 'Родовой герб',       icon: 'banner',    base: 6, growth: 3,    max: 2,        desc: l => `Фамильных вещей при новой кампании: ${1 + l}` },
+  { id: 'luck',      name: 'Кость удачи',        icon: 'die',       base: 4, growth: 2,    max: 8,        desc: l => `+${l} к удаче (редкость лута)` },
+  { id: 'hourglass', name: 'Песочные часы',      icon: 'hourglass', base: 3, growth: 1.9,  max: 8,        desc: l => `+${l * 3} сек на босса` },
+  { id: 'tome',      name: 'Фолиант гильдии',    icon: 'tome',      base: 4, growth: 2,    max: 10,       desc: l => `Найм героев дешевле на ${Math.round((1 - 0.95 ** l) * 100)}%` },
+  { id: 'scholar',   name: 'Перо мудреца',       icon: 'scroll',    base: 3, growth: 1.8,  max: 10,       desc: l => `+${l * 25}% опыта персонажа` },
+  { id: 'forge',     name: 'Горн дварфов',       icon: 'anvil',     base: 3, growth: 2,    max: 8,        desc: l => `Сложность заточки −${l}` },
+  { id: 'bag',       name: 'Бездонная сумка',    icon: 'bag',       base: 3, growth: 2.2,  max: 5,        desc: l => `+${l * 10} мест в инвентаре` },
+  { id: 'prism',     name: 'Призма судьбы',      icon: 'prism',     base: 8, growth: 1.8,  max: Infinity, desc: l => `+${l * 10}% осколков за кампанию` },
 ];
 function fmtSimple(n) { return n >= 1e6 ? (n / 1e6) + 'M' : n >= 1e3 ? (n / 1e3) + 'K' : n; }
 
 export const KILLS_PER_FLOOR = 10;
 export const BOSS_TIME = 30;
-export const PRESTIGE_FLOOR = 20;
+export const PRESTIGE_FLOOR = 30;
 export const OFFLINE_CAP = 8 * 3600;
+
+// =============== 2.0: Свойства монстров ===============
+export const TRAITS = [
+  { id: 'armored',  name: 'Бронированный', color: '#9aa8b8', desc: '+4 к КД' },
+  { id: 'regen',    name: 'Регенерация',   color: '#5ad05a', desc: 'Восстанавливает 2% ХП в секунду' },
+  { id: 'frenzy',   name: 'Неистовый',     color: '#ff6a3a', desc: 'Атакует вдвое чаще' },
+  { id: 'ghostly',  name: 'Призрачный',    color: '#b0a0ff', desc: '50% атак проходят насквозь (кроме магии)' },
+  { id: 'vampire',  name: 'Вампир',        color: '#e0304a', desc: 'Лечится от урона по отряду' },
+  { id: 'thorns',   name: 'Шипастый',      color: '#c08a3a', desc: 'Тап ранит отряд' },
+  { id: 'brute',    name: 'Громила',       color: '#d05050', desc: 'Урон ×1.8' },
+  { id: 'evasive',  name: 'Увёртливый',    color: '#60c0e0', desc: 'Слабые места не появляются' },
+];
+
+// =============== 2.0: Таланты персонажа (сбрасываются каждую кампанию) ===============
+export const TALENT_TREES = [
+  { id: 'war', name: 'Воитель', color: '#e0584c', talents: [
+    { id: 'power',   name: 'Мощный удар',    max: 10, desc: r => `+${r * 15}% урона тапа` },
+    { id: 'cry',     name: 'Боевой клич',    max: 10, desc: r => `+${r * 5}% урона отряда` },
+    { id: 'execute', name: 'Палач',          max: 5,  desc: r => `+${r * 20}% урона по боссам` },
+    { id: 'weak',    name: 'Охотник',        max: 5,  desc: r => `Слабые места: +${r * 50}% урона и чаще` },
+  ] },
+  { id: 'guard', name: 'Страж', color: '#4a9aff', talents: [
+    { id: 'fort',    name: 'Крепость',       max: 10, desc: r => `+${r * 10}% ХП отряда` },
+    { id: 'shield',  name: 'Стена щитов',    max: 5,  desc: r => `+${r} КД отряда` },
+    { id: 'parry',   name: 'Парирование',    max: 5,  desc: r => `+${r * 2} к спасброску блока` },
+    { id: 'second',  name: 'Второе дыхание', max: 5,  desc: r => `+${r * 4}% ХП после каждого убийства` },
+  ] },
+  { id: 'luck', name: 'Ловкач', color: '#5ad05a', talents: [
+    { id: 'lucky',   name: 'Счастливчик',    max: 5,  desc: r => `+${r} к удаче` },
+    { id: 'eye',     name: 'Глаз мастера',   max: 3,  desc: r => `Крит тапа на ${20 - r}–20` },
+    { id: 'goldh',   name: 'Золотые руки',   max: 10, desc: r => `+${r * 8}% золота` },
+    { id: 'scav',    name: 'Мародёр',        max: 5,  desc: r => `+${r * 12}% к шансу лута` },
+  ] },
+];
+
+// =============== 2.0: Контракты таверны ===============
+export const CONTRACTS = [
+  { id: 'kills',   text: n => `Убей ${n} монстров`,              base: 60,  per: 2 },
+  { id: 'bosses',  text: n => `Победи ${n} боссов`,               base: 3,   per: 0.05 },
+  { id: 'nat20',   text: n => `Выброси ${n} натуральных 20`,      base: 6,   per: 0.1 },
+  { id: 'blocks',  text: n => `Заблокируй ${n} мощных ударов`,    base: 4,   per: 0.06 },
+  { id: 'weak',    text: n => `Попади в ${n} слабых мест`,         base: 6,   per: 0.1 },
+  { id: 'items',   text: n => `Найди ${n} предметов`,             base: 5,   per: 0.08 },
+  { id: 'traits',  text: n => `Убей ${n} монстров со свойствами`, base: 10,  per: 0.2 },
+  { id: 'upgrade', text: n => `Успешно заточи предметы ${n} раз`, base: 2,   per: 0.03 },
+];
+
+// =============== 2.0: Проклятия кампании ===============
+export const CURSES = [
+  { id: 'thick',  name: 'Толстокожие', desc: 'Монстры ×2 ХП',                 bonus: 0.4 },
+  { id: 'fierce', name: 'Свирепые',    desc: 'Монстры бьют ×2',               bonus: 0.4 },
+  { id: 'rush',   name: 'Спешка',      desc: 'На боссов на 10 сек меньше',     bonus: 0.3 },
+  { id: 'greedy', name: 'Скупость',    desc: 'Золото −50%',                    bonus: 0.3 },
+  { id: 'unlucky', name: 'Невезение',  desc: 'Все броски d20 отряда −2',       bonus: 0.5 },
+  { id: 'naked',  name: 'Нагота',      desc: 'Нельзя надевать снаряжение',     bonus: 0.8 },
+];
+
+export const VERSION = '2.0';
+export const CHANGELOG = [
+  'Монстры бьют в ответ: у отряда есть ХП и КД, монстры атакуют броском d20. Отряд может пасть!',
+  'Мощные удары: монстр замахивается — жми «Блок» и делай спасбросок.',
+  'Слабые места: бей по светящейся руне на монстре — урон ×5.',
+  'Свойства монстров: Бронированный, Регенерация, Призрачный, Вампир, Шипастый и другие.',
+  'Уровень персонажа и дерево талантов из 3 ветвей — новый билд каждую кампанию.',
+  'Таверна: контракты с наградами.',
+  'Новая кампания: снаряжение сгорает, кроме фамильных вещей. Проклятия за бонус осколков.',
+  'Баланс: прогресс медленнее, осколков меньше, лут слабее, но ценнее.',
+];

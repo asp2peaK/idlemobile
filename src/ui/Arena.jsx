@@ -2,8 +2,9 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   G, playerAttack, useAbility, goFloor, chest, openChest, claimChest, killsPerFloor, abilOn,
+  partyHP, partyMaxHP, partyAC, blockAttack, hitWeak, blockDC, blockBonus,
 } from '../engine/engine.js';
-import { ABILITIES, HEROES } from '../engine/data.js';
+import { ABILITIES, HEROES, TRAITS } from '../engine/data.js';
 import { RARITIES } from '../engine/loot.js';
 import MonsterArt from '../art/Monster.jsx';
 import Backdrop from '../art/Backdrop.jsx';
@@ -18,6 +19,8 @@ export default function Arena() {
   const { S, M, tapRoll } = useGame();
   const [floats, setFloats] = useState([]);
   const [drops, setDrops] = useState([]);
+  const [pfl, setPfl] = useState([]);
+  const [hurt, setHurt] = useState(0);
   const monRef = useRef(null);
   const arenaRef = useRef(null);
 
@@ -33,7 +36,7 @@ export default function Arena() {
       const h = HERO_BY_ID[d.src];
       const x = tap ? (Math.random() * 80 - 40) : ((d.idx % 2 ? 1 : -1) * (40 + Math.random() * 60));
       const y = tap ? 0 : Math.random() * 50 - 10;
-      if (d.miss) addFloat({ text: tap ? (d.fumble ? 'ПРОВАЛ' : 'мимо') : 'мимо', cls: 'miss', x, y, hero: h });
+      if (d.miss) addFloat({ text: d.ghost ? 'сквозь' : tap ? (d.fumble ? 'ПРОВАЛ' : 'мимо') : 'мимо', cls: 'miss', x, y, hero: h });
       else {
         addFloat({ text: fmt(d.amount), cls: (d.crit ? 'crit ' : '') + (tap ? 'tap' : ''), x, y, hero: h });
         monRef.current?.animate(
@@ -45,6 +48,16 @@ export default function Arena() {
           arenaRef.current?.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(-7px,4px)' }, { transform: 'translate(6px,-5px)' }, { transform: 'translate(-3px,2px)' }, { transform: 'none' }], { duration: 300 });
         }
       }
+    }
+    if (type === 'mhit') {
+      const id = ++floatId;
+      setPfl(l => l.slice(-4).concat({ id, ...d }));
+      setTimeout(() => setPfl(l => l.filter(x => x.id !== id)), 1100);
+      if (d.heavy && !d.halved) {
+        vibrate([40, 30, 60]);
+        arenaRef.current?.animate([{ transform: 'translate(0,0)' }, { transform: 'translate(-10px,6px)' }, { transform: 'translate(9px,-6px)' }, { transform: 'translate(-5px,3px)' }, { transform: 'none' }], { duration: 380 });
+      }
+      if (!d.miss) setHurt(h => h + 1);
     }
     if (type === 'kill') addFloat({ text: '+' + fmt(d.gold), cls: 'gold', x: 0, y: 40, coin: true });
     if (type === 'loot') {
@@ -69,6 +82,12 @@ export default function Arena() {
   const bossLeft = M.tier ? Math.max(0, (M.bossEnd - Date.now()) / 1000) : 0;
   const need = M.tier ? 1 : killsPerFloor();
   const done = S.floor < S.maxFloor ? need : Math.min(S.kills, need);
+  const now = Date.now();
+  const charge = M.charge && !M.dead ? M.charge : null;
+  const chargeP = charge ? Math.min(1, (now - charge.start) / charge.dur) : 0;
+  const resting = G.restUntil > now;
+  const stunned = M.stunUntil > now;
+  const php = partyHP(), pmax = partyMaxHP();
 
   return (
     <section className={`arena tier${M.tier}`} ref={arenaRef}>
@@ -95,9 +114,23 @@ export default function Arena() {
             animate={M.dead ? { opacity: 0, scale: 0.75, y: 24, rotate: -8, filter: 'brightness(3)' } : { opacity: 1, scale: 1, y: 0, rotate: 0, filter: 'brightness(1)' }}
             exit={{ opacity: 0 }}
             transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
-            <div ref={monRef} className={`monster tier${M.tier}`}><MonsterArt spec={M.spec} /></div>
+            <div ref={monRef} className={`monster tier${M.tier}${charge ? ' charging' : ''}${stunned ? ' stunned' : ''}`}><MonsterArt spec={M.spec} /></div>
           </motion.div>
         </AnimatePresence>
+        {charge && (
+          <div className="charge">
+            <div className="charge-ico">!</div>
+            <div className="charge-bar"><div style={{ transform: `scaleX(${chargeP})` }} /></div>
+            <div className="charge-txt">{charge.tried ? 'Блок провален!' : 'Мощный удар!'}</div>
+          </div>
+        )}
+        {stunned && <div className="stun-txt">Оглушён</div>}
+        {G.weak && (
+          <button key={G.weak.id} className="weak" style={{ left: G.weak.x + '%', top: G.weak.y + '%' }}
+            onPointerDown={e => { e.stopPropagation(); e.preventDefault(); hitWeak(); vibrate([15, 20, 30]); }}>
+            <Icon name="rune" />
+          </button>
+        )}
         <div className="floats">
           {floats.map(f => (
             <div key={f.id} className={`fl ${f.cls}`} style={{ marginLeft: f.x, marginTop: f.y }}>
@@ -134,6 +167,11 @@ export default function Arena() {
           <span>{M.name}</span>
           <span className="ac" title="Класс доспеха"><small>КД</small><b>{M.ac}</b></span>
         </div>
+        {M.traits.length > 0 && (
+          <div className="traits">
+            {M.traits.map(t => { const tr = TRAITS.find(x => x.id === t); return <span key={t} className="trait" style={{ '--c': tr.color }} title={tr.desc}>{tr.name}</span>; })}
+          </div>
+        )}
         <div className="hp">
           <div className="hp-lag" style={{ transform: `scaleX(${hpP})` }} />
           <div className="hp-fill" style={{ transform: `scaleX(${hpP})` }} />
@@ -141,8 +179,29 @@ export default function Arena() {
         </div>
       </div>
 
+      <div className="party-bar">
+        <span className="pb-ico"><Icon name="heart" /></span>
+        <div className={`pb-hp${php / pmax < 0.3 ? ' low' : ''}`}>
+          <motion.div key={hurt} className="pb-flash" initial={{ opacity: 0.8 }} animate={{ opacity: 0 }} transition={{ duration: 0.4 }} />
+          <div className="pb-fill" style={{ transform: `scaleX(${php / pmax})` }} />
+          <span>{resting ? 'Отдых…' : `${fmt(php)} / ${fmt(pmax)}`}</span>
+        </div>
+        <span className="pb-ac" title="КД отряда"><Icon name="shield" /><b>{partyAC()}</b></span>
+        <div className="pfl">
+          {pfl.map(f => <div key={f.id} className={`pf${f.miss ? ' miss' : ''}${f.heavy ? ' heavy' : ''}`}>{f.miss ? `${f.r} — мимо` : (f.thorns ? 'шипы ' : '') + '−' + fmt(f.dmg)}</div>)}
+        </div>
+      </div>
+
       <div className="arena-bottom">
         <Abilities />
+        {charge && !charge.tried && (
+          <motion.button className="block-btn" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            onPointerDown={e => { e.preventDefault(); blockAttack(); vibrate(20); }}>
+            <Icon name="shield" />
+            <span>БЛОК</span>
+            <small>d20+{blockBonus()} ≥ {blockDC()}</small>
+          </motion.button>
+        )}
         <button className="d20-btn" onPointerDown={onTap} aria-label="Атаковать">
           <motion.div key={tapRoll.n} className="d20-wrap"
             initial={tapRoll.n ? { rotate: -220, scale: 0.7 } : false} animate={{ rotate: 0, scale: 1 }}
@@ -153,6 +212,7 @@ export default function Arena() {
         </button>
       </div>
 
+      {resting && <div className="rest-overlay"><b>Отряд пал</b><span>Отдых и перевязка ран…</span></div>}
       {chest.visible && <button className="chest" onClick={() => openChestModal()}><Icon name="chest" /></button>}
     </section>
   );

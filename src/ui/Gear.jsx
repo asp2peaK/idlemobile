@@ -43,6 +43,7 @@ function ItemTile({ item, onClick, empty, slot }) {
       <ItemIcon item={item} />
       {item.plus > 0 && <span className="plus">+{item.plus}</span>}
       {item.locked && <span className="lockmark"><Icon name="lock" /></span>}
+      {item.heir && <span className="heir-mark">★</span>}
       <span className="ilvl">{item.ilvl}</span>
     </motion.button>
   );
@@ -63,6 +64,7 @@ export default function Gear() {
         <div className="dust"><Icon name="dust" /> {fmt(S.dust)}</div>
       </div>
 
+      {S.curses.includes('naked') && <div className="warn">Проклятие Наготы: в этой кампании снаряжение не действует</div>}
       <div className="doll">
         <div className="doll-slots">
           {SLOTS.map(s => <ItemTile key={s.id} slot={s.id} item={S.eq[s.id]} onClick={() => S.eq[s.id] && openModal(() => <EquippedModal slot={s.id} />)} />)}

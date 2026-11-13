@@ -12,14 +12,14 @@ export const SLOTS = [
 
 export const RARITIES = [
   { name: 'Обычный',     short: 'Обычн.',  color: '#b4b0a8', mul: 1,   aff: 0 },
-  { name: 'Необычный',   short: 'Необ.',   color: '#56d062', mul: 1.6, aff: 1 },
-  { name: 'Редкий',      short: 'Редк.',   color: '#4aa2ff', mul: 2.6, aff: 2 },
-  { name: 'Эпический',   short: 'Эпич.',   color: '#bb62ff', mul: 4.2, aff: 3 },
-  { name: 'Легендарный', short: 'Легенд.', color: '#ffa22e', mul: 7,   aff: 3 },
-  { name: 'Мифический',  short: 'Миф.',    color: '#ff3d62', mul: 12,  aff: 4 },
+  { name: 'Необычный',   short: 'Необ.',   color: '#56d062', mul: 1.4, aff: 1 },
+  { name: 'Редкий',      short: 'Редк.',   color: '#4aa2ff', mul: 2, aff: 2 },
+  { name: 'Эпический',   short: 'Эпич.',   color: '#bb62ff', mul: 2.9, aff: 3 },
+  { name: 'Легендарный', short: 'Легенд.', color: '#ffa22e', mul: 4.2, aff: 3 },
+  { name: 'Мифический',  short: 'Миф.',    color: '#ff3d62', mul: 6.5, aff: 4 },
 ];
 
-const MAIN = { weapon: 'dmg', helm: 'tap', armor: 'party', amulet: 'gold', ring: 'critDmg', boots: 'speed' };
+const MAIN = { weapon: 'dmg', helm: 'tap', armor: 'hp', amulet: 'gold', ring: 'critDmg', boots: 'speed' };
 
 // scaled: растёт с уровнем предмета и заточкой; иначе — фиксированное значение от редкости
 export const STATS = {
@@ -35,8 +35,11 @@ export const STATS = {
   luck:      { label: v => `+${v} к удаче`,                   flat: r => 1 + (r >= 4 ? 1 : 0), suffix: 'удачи' },
   loot:      { label: v => `+${v}% к шансу лута`,             flat: r => 3 + r * 2, suffix: 'искателя' },
   bossTime:  { label: v => `+${v} сек на босса`,              flat: r => 2 + r, suffix: 'терпения' },
+  hp:        { label: v => `+${fmtPct(v)}% ХП отряда`,        base: 10, scaled: true, suffix: 'стойкости' },
+  ac:        { label: v => `+${v} КД отряда`,                 flat: r => 1 + Math.floor(r / 2), suffix: 'защиты' },
+  regen:     { label: v => `+${v}% ХП после убийства`,         flat: r => 2 + r, suffix: 'жизни' },
 };
-const AFFIX_POOL = ['dmg', 'tap', 'party', 'gold', 'critDmg', 'cls', 'speed', 'hit', 'critRange', 'luck', 'loot', 'bossTime'];
+const AFFIX_POOL = ['dmg', 'tap', 'party', 'gold', 'critDmg', 'cls', 'speed', 'hit', 'critRange', 'luck', 'loot', 'bossTime', 'hp', 'ac', 'regen'];
 
 export const UNIQUES = {
   weapon: [{ id: 'vorpal', name: 'Ворпальный клинок', desc: 'Криты наносят ещё ×3 урона', v: 'sword' },
@@ -73,7 +76,7 @@ function fmtPct(v) {
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const d20 = () => 1 + Math.floor(Math.random() * 20);
 
-export const ilvlScale = ilvl => 1 + ilvl * 0.1;
+export const ilvlScale = ilvl => 1 + ilvl * 0.05;
 export const plusMul = plus => 1 + plus * 0.08;
 
 // Бросок на редкость: d20 + удача. Нат. 20 → легендарка, и ещё бросок на подтверждение → мифик
@@ -144,7 +147,7 @@ export function uniqueInfo(item) {
 }
 
 export function gearTotals(eq) {
-  const t = { dmg: 0, tap: 0, party: 0, gold: 0, critDmg: 0, speed: 0, hit: 0, critRange: 0, luck: 0, loot: 0, bossTime: 0, cls: {}, uniques: new Set() };
+  const t = { dmg: 0, tap: 0, party: 0, gold: 0, critDmg: 0, speed: 0, hit: 0, critRange: 0, luck: 0, loot: 0, bossTime: 0, hp: 0, ac: 0, regen: 0, cls: {}, uniques: new Set() };
   Object.values(eq).forEach(item => {
     if (!item) return;
     item.affixes.forEach(a => {

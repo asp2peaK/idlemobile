@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { G, pendingShards, goldPerSec } from './engine/engine.js';
+import { G, pendingShards, goldPerSec, talentPoints } from './engine/engine.js';
+import { CHANGELOG, VERSION } from './engine/data.js';
 import { RARITIES } from './engine/loot.js';
 import Arena from './ui/Arena.jsx';
 import Gear from './ui/Gear.jsx';
-import { Party, Hero, Relics, Codex } from './ui/Panels.jsx';
+import { Party, Hero, Relics, Tavern } from './ui/Panels.jsx';
 import { Icon, ItemIcon } from './art/Icons.jsx';
 import { useGame, useEvents, useModal, closeModal, openModal, fmt, fmtTime } from './ui/util.js';
 
@@ -12,8 +13,8 @@ const TABS = [
   { id: 'party', name: 'Отряд', icon: 'swords', C: Party },
   { id: 'hero', name: 'Герой', icon: 'hero', C: Hero },
   { id: 'gear', name: 'Вещи', icon: 'backpack', C: Gear },
+  { id: 'tavern', name: 'Таверна', icon: 'mug', C: Tavern },
   { id: 'relics', name: 'Реликвии', icon: 'gem', C: Relics },
-  { id: 'codex', name: 'Кодекс', icon: 'tome', C: Codex },
 ];
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
   useEvents((type, d) => {
     if (type === 'loot' && !d.salvaged) setNewItems(n => n + 1);
     if (type === 'offline') openModal(() => <OfflineModal data={d} />);
+    if (type === 'changelog') openModal(() => <ChangelogModal />);
   });
   const T = TABS.find(t => t.id === tab) || TABS[0];
   return (
@@ -37,6 +39,8 @@ export default function App() {
             <span>{t.name}</span>
             {t.id === 'gear' && newItems > 0 && tab !== 'gear' && <i className="badge">{newItems}</i>}
             {t.id === 'relics' && <ShardBadge />}
+            {t.id === 'hero' && <TalentBadge />}
+            {t.id === 'tavern' && <ContractBadge />}
           </button>
         ))}
       </nav>
@@ -52,6 +56,28 @@ function ShardBadge() {
   return g > 0 ? <i className="badge purple">+{g}</i> : null;
 }
 
+function TalentBadge() {
+  useGame();
+  const p = talentPoints();
+  return p > 0 ? <i className="badge">{p}</i> : null;
+}
+function ContractBadge() {
+  const { S } = useGame();
+  const n = S.contracts.filter(c => c.prog >= c.target).length;
+  return n > 0 ? <i className="badge">{n}</i> : null;
+}
+function ChangelogModal() {
+  return (
+    <div className="modal-inner">
+      <span className="ver">Версия {VERSION}</span>
+      <h3>Кости Судьбы 2.0</h3>
+      <ul className="changelog">{CHANGELOG.map(l => <li key={l}>{l}</li>)}</ul>
+      <p className="sub">Старые реликвии вернулись осколками — перераспредели их.</p>
+      <button className="btn-big" onClick={closeModal}>В бой!</button>
+    </div>
+  );
+}
+
 function Hud() {
   const { S } = useGame();
   return (
@@ -60,7 +86,7 @@ function Hud() {
         <span className="coin" />
         <div><div className="hud-num">{fmt(S.gold)}</div><div className="hud-sub">{fmt(goldPerSec())}/сек</div></div>
       </div>
-      <div className="hud-title">Кости Судьбы</div>
+      <div className="hud-title">Кости Судьбы <sup className="hud-ver">2.0</sup></div>
       <div className="hud-right">
         <div className="hud-pill"><Icon name="gem" />{fmt(S.shards)}</div>
         <div className="hud-pill dust"><Icon name="dust" />{fmt(S.dust)}</div>
