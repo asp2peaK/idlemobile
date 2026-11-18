@@ -70,9 +70,12 @@ function ChangelogModal() {
   return (
     <div className="modal-inner">
       <span className="ver">Версия {VERSION}</span>
-      <h3>Кости Судьбы 2.0</h3>
+      <h3>Кости Судьбы {VERSION}</h3>
       <ul className="changelog">{CHANGELOG.map(l => <li key={l}>{l}</li>)}</ul>
-      <p className="sub">Старые реликвии вернулись осколками — перераспредели их.</p>
+      {G.migrated ? (
+        <p className="warn">Из-за нового баланса текущий поход (этаж {G.migrated.floor}) завершён как кампания.
+          Снаряжение и пыль сохранены полностью. Получено <b>+{G.migrated.gain}</b> осколков, ещё <b>{G.migrated.refund}</b> вернулось за реликвии — купи их заново по новым ценам.</p>
+      ) : <p className="sub">Перераспредели осколки в Реликвиях.</p>}
       <button className="btn-big" onClick={closeModal}>В бой!</button>
     </div>
   );
@@ -86,7 +89,7 @@ function Hud() {
         <span className="coin" />
         <div><div className="hud-num">{fmt(S.gold)}</div><div className="hud-sub">{fmt(goldPerSec())}/сек</div></div>
       </div>
-      <div className="hud-title">Кости Судьбы <sup className="hud-ver">2.0</sup></div>
+      <div className="hud-title">Кости Судьбы <sup className="hud-ver">{VERSION}</sup></div>
       <div className="hud-right">
         <div className="hud-pill"><Icon name="gem" />{fmt(S.shards)}</div>
         <div className="hud-pill dust"><Icon name="dust" />{fmt(S.dust)}</div>

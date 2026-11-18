@@ -294,7 +294,101 @@ function Mimic() {
   );
 }
 
-const ARCHES = { slime: Slime, goblin: Goblin, skull: Skull, beast: Beast, eye: EyeTyrant, spider: Spider, ghost: Ghost, golem: Golem, demon: Demon, bat: Bat, dragon: Dragon, mimic: Mimic };
+
+function Orc({ p, g }) {
+  return (
+    <g>
+      <path d="M30,200 Q36,146 100,142 Q164,146 170,200Z" fill="#4a3424" stroke="#140a08" strokeWidth="3" />
+      <path d="M40,176 L70,150 M160,176 L130,150" stroke="#8a8a8a" strokeWidth="6" />
+      <path d="M52,92 L28,78 L40,104Z M148,92 L172,78 L160,104Z" fill={p.base} stroke="#140a08" strokeWidth="3" strokeLinejoin="round" />
+      <path d="M56,70 Q100,34 144,70 L150,120 Q140,166 100,168 Q60,166 50,120Z" fill={`url(#${g}b)`} stroke="#140a08" strokeWidth="4" />
+      <path d="M86,40 Q100,10 114,40" fill="#1a0e08" stroke="#140a08" strokeWidth="3" />
+      <path d="M60,88 Q80,80 96,92 M140,88 Q120,80 104,92" stroke="#140a08" strokeWidth="8" strokeLinecap="round" fill="none" />
+      <GlowEye x={80} y={100} r={6} c="#ff3a2a" /><GlowEye x={120} y={100} r={6} c="#ff3a2a" />
+      <path d="M62,104 L72,118 M138,104 L128,118" stroke="#c03020" strokeWidth="4" strokeLinecap="round" opacity=".8" />
+      <path d="M92,112 Q100,108 108,112 L106,124 Q100,128 94,124Z" fill={p.dark} />
+      <path d="M66,140 Q100,160 134,140 Q100,148 66,140Z" fill="#2a0e0a" stroke="#140a08" strokeWidth="2.5" />
+      <path d="M72,146 Q70,124 80,118 Q80,134 82,144Z M128,146 Q130,124 120,118 Q120,134 118,144Z" fill="#f6efdc" stroke="#2a1a10" strokeWidth="2" />
+      {p.scar && <path d="M116,66 L130,104" stroke="#3a1a10" strokeWidth="3" />}
+      {p.crown && <Crown cx={100} y={52} w={56} />}
+    </g>
+  );
+}
+
+function Mushroom({ p, g }) {
+  const r = rng(p.seed);
+  const spots = Array.from({ length: 6 }, () => [40 + r() * 120, 40 + r() * 46, 6 + r() * 8]);
+  return (
+    <g>
+      <path d="M70,110 Q62,170 74,192 L126,192 Q138,170 130,110Z" fill="#efe2c4" stroke="#2a1a10" strokeWidth="4" />
+      <path d="M70,150 Q50,150 44,170 M130,150 Q150,150 156,170" stroke="#efe2c4" strokeWidth="9" strokeLinecap="round" fill="none" />
+      <path d="M70,150 Q50,150 44,170 M130,150 Q150,150 156,170" stroke="#2a1a10" strokeWidth="2" fill="none" opacity=".4" />
+      <path d="M18,104 Q20,30 100,26 Q180,30 182,104 Q100,124 18,104Z" fill={`url(#${g}b)`} stroke="#2a1a10" strokeWidth="4" />
+      {spots.map(([x, y, rr], i) => <ellipse key={i} cx={x} cy={y} rx={rr} ry={rr * 0.75} fill="#f4ecd8" opacity=".9" />)}
+      <path d="M30,104 Q100,116 170,104" stroke={p.dark} strokeWidth="3" fill="none" />
+      <path d="M44,106 L48,116 M70,110 L72,120 M100,112 L100,122 M130,110 L128,120 M156,106 L152,116" stroke={p.dark} strokeWidth="2" />
+      <Eye x={86} y={140} r={9} iris={p.iris} /><Eye x={114} y={140} r={9} iris={p.iris} />
+      <path d="M90,164 Q100,172 110,164" stroke="#2a1a10" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <g className="smoke"><circle cx="40" cy="70" r="3" fill={p.light} opacity=".6" /><circle cx="160" cy="60" r="2.5" fill={p.light} opacity=".6" /><circle cx="120" cy="20" r="2" fill={p.light} opacity=".6" /></g>
+      {p.crown && <Crown cx={100} y={30} w={50} />}
+    </g>
+  );
+}
+
+function Serpent({ p, g }) {
+  return (
+    <g>
+      <path d="M40,190 Q10,160 50,150 Q120,140 150,160 Q190,186 150,196 Q100,204 60,196Z" fill={`url(#${g}b)`} stroke="#140a08" strokeWidth="4" />
+      <path d="M60,170 Q100,160 140,172" stroke={p.light} strokeWidth="4" fill="none" opacity=".5" strokeDasharray="8 6" />
+      <path d="M86,152 Q70,110 92,80 L108,80 Q130,110 114,152Z" fill={p.base} stroke="#140a08" strokeWidth="4" />
+      <path d="M92,150 Q84,116 96,90 L104,90 Q116,116 108,150Z" fill={p.light} opacity=".55" />
+      <path d="M100,96 Q42,90 38,46 Q60,20 100,22 Q140,20 162,46 Q158,90 100,96Z" fill={`url(#${g}b)`} stroke="#140a08" strokeWidth="4" className="sway" />
+      <path d="M56,50 Q100,30 144,50 Q130,72 100,74 Q70,72 56,50Z" fill={p.dark} opacity=".6" />
+      <path d="M70,48 L82,58 M130,48 L118,58" stroke={p.light} strokeWidth="3" />
+      <Eye x={82} y={54} r={9} iris="#ffd23a" slit glow /><Eye x={118} y={54} r={9} iris="#ffd23a" slit glow />
+      <path d="M84,76 Q100,86 116,76" stroke="#140a08" strokeWidth="3" fill="none" />
+      <path d="M90,76 L94,90 L97,77 M110,76 L106,90 L103,77" fill="#fff" stroke="#2a1a10" strokeWidth="1" />
+      <path d="M100,84 L100,100 L94,108 M100,100 L106,108" stroke="#e0304a" strokeWidth="3" fill="none" strokeLinecap="round" className="sway" />
+      {p.crown && <Crown cx={100} y={26} w={46} />}
+    </g>
+  );
+}
+
+function Beetle({ p, g }) {
+  const legs = ['M60,120 L24,104 L10,124', 'M58,142 L20,146 L12,170', 'M66,164 L36,184 L34,198', 'M140,120 L176,104 L190,124', 'M142,142 L180,146 L188,170', 'M134,164 L164,184 L166,198'];
+  return (
+    <g>
+      <g className="legs">{legs.map((l, i) => <path key={i} d={l} stroke="#140a08" strokeWidth="8" fill="none" strokeLinecap="round" strokeLinejoin="round" />)}</g>
+      <ellipse cx="100" cy="140" rx="48" ry="52" fill={`url(#${g}b)`} stroke="#140a08" strokeWidth="4" />
+      <path d="M100,90 V192" stroke="#140a08" strokeWidth="3.5" />
+      <path d="M70,110 Q66,140 74,172 M130,110 Q134,140 126,172" stroke={p.light} strokeWidth="5" fill="none" opacity=".45" strokeLinecap="round" />
+      <ellipse cx="80" cy="112" rx="10" ry="6" fill="#fff" opacity=".35" transform="rotate(-30 80 112)" />
+      <path d="M66,92 Q100,64 134,92 Q100,104 66,92Z" fill={p.dark} stroke="#140a08" strokeWidth="3.5" />
+      <path d="M100,72 Q92,40 100,18 Q112,40 104,72Z" fill={p.bone} stroke="#140a08" strokeWidth="3" />
+      <path d="M76,82 Q56,70 60,52 Q72,64 84,74 M124,82 Q144,70 140,52 Q128,64 116,74" fill={p.bone} stroke="#140a08" strokeWidth="2.5" />
+      <GlowEye x={84} y={84} r={5} c={p.glow} /><GlowEye x={116} y={84} r={5} c={p.glow} />
+      {p.crown && <Crown cx={100} y={64} w={42} />}
+    </g>
+  );
+}
+
+function Elemental({ p, g }) {
+  const r = rng(p.seed);
+  const rocks = Array.from({ length: 4 }, (_, i) => [100 + Math.cos(i * 1.6) * 80, 110 + Math.sin(i * 1.6) * 50, 8 + r() * 8]);
+  return (
+    <g>
+      {rocks.map(([x, y, rr], i) => <path key={i} d={`M${x - rr},${y} L${x - rr * 0.3},${y - rr} L${x + rr},${y - rr * 0.4} L${x + rr * 0.6},${y + rr} L${x - rr * 0.6},${y + rr * 0.8}Z`} fill={p.dark} stroke="#140a08" strokeWidth="2.5" className="float-y" style={{ animationDelay: `${i * 0.4}s` }} />)}
+      <path d="M100,196 C40,190 34,140 56,104 C64,120 70,124 74,124 C68,96 80,60 100,14 C108,50 126,64 132,96 C138,86 140,78 144,70 C168,110 166,190 100,196Z" fill={`url(#${g}b)`} stroke={p.dark} strokeWidth="3" className="flicker-body" />
+      <path d="M100,190 C66,184 62,150 78,124 C84,138 90,140 94,140 C92,116 98,96 104,74 C110,100 124,112 124,130 C130,124 132,118 134,112 C146,140 140,186 100,190Z" fill={p.light} opacity=".75" />
+      <path d="M100,184 C82,180 80,160 90,146 C96,156 104,156 108,150 C112,160 116,176 100,184Z" fill="#fff8d0" opacity=".85" />
+      <GlowEye x={84} y={116} r={7} c="#fff" /><GlowEye x={116} y={116} r={7} c="#fff" />
+      <path d="M88,142 Q100,150 112,142" stroke="#140a08" strokeWidth="3" fill="none" opacity=".6" />
+      {p.crown && <Crown cx={100} y={40} w={44} />}
+    </g>
+  );
+}
+
+const ARCHES = { orc: Orc, mushroom: Mushroom, serpent: Serpent, beetle: Beetle, elemental: Elemental, slime: Slime, goblin: Goblin, skull: Skull, beast: Beast, eye: EyeTyrant, spider: Spider, ghost: Ghost, golem: Golem, demon: Demon, bat: Bat, dragon: Dragon, mimic: Mimic };
 
 function MonsterArt({ spec }) {
   const g = useId().replace(/:/g, '');

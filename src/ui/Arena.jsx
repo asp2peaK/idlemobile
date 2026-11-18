@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   G, playerAttack, useAbility, goFloor, chest, openChest, claimChest, killsPerFloor, abilOn,
-  partyHP, partyMaxHP, partyAC, blockAttack, hitWeak, blockDC, blockBonus,
+  partyHP, partyMaxHP, partyAC, blockAttack, hitWeak, blockDC, blockBonus, usePotion, POT_MAX, POT_KILLS,
 } from '../engine/engine.js';
 import { ABILITIES, HEROES, TRAITS } from '../engine/data.js';
 import { RARITIES } from '../engine/loot.js';
@@ -181,7 +181,7 @@ export default function Arena() {
 
       <div className="party-bar">
         <span className="pb-ico"><Icon name="heart" /></span>
-        <div className={`pb-hp${php / pmax < 0.3 ? ' low' : ''}`}>
+        <div className={`pb-hp${php / pmax < 0.3 ? ' low' : ''}${G.poison ? ' poisoned' : ''}`}>
           <motion.div key={hurt} className="pb-flash" initial={{ opacity: 0.8 }} animate={{ opacity: 0 }} transition={{ duration: 0.4 }} />
           <div className="pb-fill" style={{ transform: `scaleX(${php / pmax})` }} />
           <span>{resting ? 'Отдых…' : `${fmt(php)} / ${fmt(pmax)}`}</span>
@@ -193,7 +193,10 @@ export default function Arena() {
       </div>
 
       <div className="arena-bottom">
-        <Abilities />
+        <div className="abilities">
+          <Abilities />
+          <Potion low={php / pmax < 0.35} />
+        </div>
         {charge && !charge.tried && (
           <motion.button className="block-btn" initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
             onPointerDown={e => { e.preventDefault(); blockAttack(); vibrate(20); }}>
@@ -218,11 +221,25 @@ export default function Arena() {
   );
 }
 
+function Potion({ low }) {
+  const { S } = useGame();
+  const cd = G.potCd > Date.now();
+  const can = S.potions > 0 && !cd && S.hpFrac < 1;
+  return (
+    <button className={`potion${can ? ' can' : ''}${can && low ? ' low' : ''}`} disabled={!can}
+      onClick={() => { usePotion(); vibrate(15); }} title={`Зелье: +45% ХП. Новое каждые ${POT_KILLS} убийств`}>
+      <Icon name="potion" />
+      <span className="pn">{S.potions}/{POT_MAX}</span>
+      {cd && <div className="cdt">{Math.ceil((G.potCd - Date.now()) / 1000)}</div>}
+    </button>
+  );
+}
+
 function Abilities() {
   const { S } = useGame();
   const t = Date.now();
   return (
-    <div className="abilities">
+    <>
       {ABILITIES.map(a => {
         const st = S.abil[a.id] || {};
         const locked = S.maxFloor < a.unlock;
@@ -237,7 +254,7 @@ function Abilities() {
           </button>
         );
       })}
-    </div>
+    </>
   );
 }
 

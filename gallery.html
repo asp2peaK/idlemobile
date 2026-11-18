@@ -7,7 +7,7 @@ import { ItemIcon, HeroIcon, Icon } from '/src/art/Icons.jsx';
 import { makeItem } from '/src/engine/loot.js';
 import { HEROES } from '/src/engine/data.js';
 import '/src/styles.css';
-const arches=['slime','goblin','skull','beast','eye','spider','ghost','golem','demon','bat','dragon','mimic'];
+const arches=['orc','mushroom','serpent','beetle','elemental','slime','goblin','skull','beast','eye','spider','ghost','golem','demon','bat','dragon','mimic'];
 const specs = arches.map((a,i)=>({arch:a,hue:(i*37)%360,sat:45,light:40,eyes:1+i%3,horns:i%2==0,spikes:i%3==0,scar:true,crown:i%4==1,aura:i%4==1?'#ff3a2a':null,glow:'#9a7aff',seed:i*99}));
 const items=[]; ['weapon','helm','armor','amulet','ring','boots'].forEach((s,si)=>{for(let r=0;r<6;r++) items.push(makeItem(si*10+r, r*20, r, s));});
 const misc=['rage','clover','coins','fist','d20','target','scroll','blade','hoard','die','hourglass','tome','anvil','bag','banner','prism','chest','dust','lock','swords','hero','backpack','gem'];

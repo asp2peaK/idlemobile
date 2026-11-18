@@ -24,7 +24,7 @@ export function maxBuy(base, growth, lvl, gold) {
 function freshState() {
   return {
     v: 3, ver: VERSION,
-    gold: 0, floor: 1, maxFloor: 1, kills: 0, auto: true, hpFrac: 1,
+    gold: 0, floor: 1, maxFloor: 1, kills: 0, auto: true, hpFrac: 1, potions: 2, potKills: 0,
     heroes: Object.fromEntries(HEROES.map(h => [h.id, 0])),
     str: 0, dieTier: 0, acc: 0, tactic: 0,
     lvl: 1, xp: 0, talents: {},
@@ -51,6 +51,8 @@ export const G = {
   restUntil: 0,        // отряд отдыхает после поражения
   vulnUntil: 0,        // монстр уязвим (после слабого места)
   counter: false,      // следующий тап — гарантированный крит (после блока)
+  poison: null,        // яд на отряде {until, dps}
+  potCd: 0,
   version: 0,
   showChangelog: false,
 };
@@ -74,16 +76,15 @@ const uq = id => G.gear.uniques.has(id);
 function recalcGear() { G.gear = gearTotals(cursed('naked') ? {} : S().eq); }
 
 export function heroUnlocked(h) { return !h.unlock || S().stats.bestFloor >= h.unlock; }
+// 2.1: урон растёт экспоненциально вместе с ценой — сложность ровная по всей игре, без стены после 100 этажа
+export const HERO_EXP = 1.038;
 export function heroMul(lvl) {
   if (lvl <= 0) return 0;
-  const ms = HERO_MILESTONES.filter(m => lvl >= m).length;
-  return lvl * 2 ** ms * (lvl > 1000 ? 2 ** Math.floor((lvl - 1000) / 100) : 1);
+  return HERO_EXP ** lvl * 2 ** Math.floor(lvl / 25);
 }
-export function nextMilestone(lvl) {
-  return HERO_MILESTONES.find(m => m > lvl) || (Math.floor(Math.max(lvl, 1000) / 100) + 1) * 100;
-}
+export function nextMilestone(lvl) { return (Math.floor(lvl / 25) + 1) * 25; }
 export function dmgMul() {
-  return (1 + relic('blade') * 0.2) * (1 + S().heroes.bard * 0.01) * (1 + G.gear.dmg / 100);
+  return 1.15 ** relic('blade') * (1 + Math.floor(S().heroes.bard / 25) * 0.1) * (1 + G.gear.dmg / 100);
 }
 export function bossMul() { return G.M?.tier ? (1 + tal('execute') * 0.2) * (uq('holy') ? 2.5 : 1) : 1; }
 export function vulnMul() { return G.vulnUntil > now() ? 1.5 : 1; }
@@ -94,7 +95,7 @@ export function partyMul(h) {
 }
 export function tapMul() { return dmgMul() * (1 + G.gear.tap / 100) * (1 + tal('power') * 0.15); }
 export function goldMul() {
-  let m = (1 + relic('greed') * 0.15) * (1 + S().heroes.cleric * 0.02) * (1 + G.gear.gold / 100) * (1 + tal('goldh') * 0.08);
+  let m = (1 + relic('greed') * 0.15) * (1 + Math.floor(S().heroes.cleric / 25) * 0.1) * (1 + G.gear.gold / 100) * (1 + tal('goldh') * 0.08);
   if (abilOn('midas')) m *= 3;
   if (uq('midas')) m *= 1.5;
   if (cursed('greedy')) m *= 0.5;
@@ -120,16 +121,19 @@ export function heroBuyK(h) {
 }
 
 // ---------- Монстры: формулы ----------
-export const HP_GROWTH = 1.5;
+export const HP_GROWTH = 1.55;
 export function floorAC(f) { return Math.min(30, 8 + Math.floor(f / 3)); }
 const BOSS_HP = [1, 8, 10, 15];
 const BOSS_GOLD = [1, 5, 7, 12];
 const BOSS_DMG = [1, 2, 2.5, 3.5];
 const BOSS_XP = [1, 4, 8, 20];
-export function floorHP(f) { return Math.ceil(10 * HP_GROWTH ** (f - 1)) * (cursed('thick') ? 2 : 1); }
-export function floorGold(f) { return Math.ceil(10 * HP_GROWTH ** (f - 1) / 5); }
+// Мягкий вход: первые 30 этажей монстры слабее, дальше полный баланс
+const earlyEase = f => (f < 30 ? 0.95 ** (30 - f) : 1);
+export function floorHP(f) { return Math.ceil(10 * HP_GROWTH ** (f - 1) * earlyEase(f)) * (cursed('thick') ? 2 : 1); }
+export const GOLD_GROWTH = 1.5;
+export function floorGold(f) { return Math.ceil(10 * GOLD_GROWTH ** (f - 1) / 5); }
 export function monsterAtk(f) { return Math.min(26, 2 + Math.floor(f / 4)); }
-export function monsterHitDmg(f, tier = 0) { return 10 * HP_GROWTH ** (f - 1) * 0.22 * BOSS_DMG[tier] * (cursed('fierce') ? 2 : 1); }
+export function monsterHitDmg(f, tier = 0) { return 10 * HP_GROWTH ** (f - 1) * earlyEase(f) * 0.24 * BOSS_DMG[tier] * (cursed('fierce') ? 2 : 1); }
 export function blockDC() { return Math.min(24, 10 + Math.floor(S().floor / 10) + (G.M?.tier || 0)); }
 export function blockBonus() { return 2 + tal('parry') * 2 + Math.floor(S().acc / 3); }
 
@@ -139,7 +143,7 @@ function rawPartyDps() {
 }
 export function partyMaxHP() {
   const base = 40 + 6 * rawPartyDps() + 10 * tapPower();
-  return base * (1 + G.gear.hp / 100) * (1 + relic('aegis') * 0.2) * (1 + tal('fort') * 0.1) * (1 + S().heroes.barbarian * 0.01);
+  return base * (1 + G.gear.hp / 100) * 1.15 ** relic('aegis') * (1 + tal('fort') * 0.1) * (1 + Math.floor(S().heroes.barbarian / 25) * 0.1);
 }
 export function partyAC() {
   return 10 + Math.floor(S().heroes.paladin / 10) + G.gear.ac + tal('shield') + Math.floor(S().heroes.fighter / 25);
@@ -175,7 +179,7 @@ export function tapPower() { return (1 + S().str) * 2 ** Math.floor(S().str / 25
 export function tapCritMin() { return 20 - critBonus() - tal('eye'); }
 export function tapAvg() {
   const pd = playerDie();
-  return (pd.n * (pd.d + 1) / 2 * tapPower() + partyDps() * S().tactic * 0.02) * tapMul();
+  return pd.n * (pd.d + 1) / 2 * tapPower() * tapMul() + partyDps() * S().tactic * 0.02;
 }
 export function goldPerSec() {
   const dps = partyDps();
@@ -187,7 +191,7 @@ export function goldPerSec() {
 export function curseMul(list = S().curses) { return 1 + list.reduce((s, id) => s + (CURSES.find(c => c.id === id)?.bonus || 0), 0); }
 export function pendingShards() {
   if (S().maxFloor < PRESTIGE_FLOOR) return 0;
-  return Math.floor(((S().maxFloor - 20) / 10) ** 1.8 * (1 + relic('prism') * 0.1) * curseMul());
+  return Math.floor(((S().maxFloor - 20) / 10) ** 1.3 * (1 + relic("prism") * 0.1) * curseMul());
 }
 
 // ---------- Опыт и таланты ----------
@@ -223,7 +227,7 @@ function newContract(exclude = []) {
   const f = st.stats.bestFloor;
   const roll = Math.random();
   let reward;
-  if (roll < 0.12 && f >= 25) reward = { kind: 'shards', amount: 1 + Math.floor(f / 50) };
+  if (roll < 0.05 && f >= 40) reward = { kind: 'shards', amount: 1 };
   else if (roll < 0.4) reward = { kind: 'item', rar: f >= 60 ? 3 : 2 };
   else if (roll < 0.7) reward = { kind: 'dust', amount: Math.ceil((25 + f * 4) * rnd(0.8, 1.3)) };
   else reward = { kind: 'gold', secs: 240 };
@@ -333,6 +337,7 @@ function kill() {
   earn(g);
   st.stats.kills++;
   track('kills');
+  if (st.potions < POT_MAX && ++st.potKills >= POT_KILLS) { st.potKills = 0; st.potions++; toast('+1 зелье лечения', 'gold'); }
   if (M.traits.length) { st.stats.traitKills++; track('traits'); }
   gainXp((2 + st.floor * 0.4) * BOSS_XP[M.tier] * (M.mimic ? 5 : 1));
   healPct(0.1 + tal('second') * 0.04 + G.gear.regen / 100);
@@ -382,7 +387,8 @@ function monsterAttack(heavy) {
   const M = G.M, st = S();
   const r = d(20);
   const ac = partyAC();
-  let dmg = monsterHitDmg(st.floor, M.tier) * rnd(0.6, 1.4) * (M.traits.includes('brute') ? 1.8 : 1);
+  const enraged = M.traits.includes('enrage') && M.hp < M.maxHp * 0.3;
+  let dmg = monsterHitDmg(st.floor, M.tier) * rnd(0.6, 1.4) * (M.traits.includes('brute') ? 1.8 : 1) * (enraged ? 2 : 1);
   if (heavy) {
     dmg *= 3;
     if (M.charge?.failed) dmg *= 0.5;
@@ -394,6 +400,7 @@ function monsterAttack(heavy) {
   const before = st.hpFrac;
   st.hpFrac -= dmg / partyMaxHP();
   if (M.traits.includes('vampire')) M.hp = Math.min(M.maxHp, M.hp + M.maxHp * 0.03);
+  if (M.traits.includes('poison')) G.poison = { until: now() + 5000, dps: dmg * 0.12 };
   emit('mhit', { dmg, heavy, crit: r === 20, r, ac, halved: !!M.charge?.failed });
   if (st.hpFrac <= 0 && before > 0) { st.hpFrac = 0; partyFell(); }
 }
@@ -422,6 +429,19 @@ export function blockAttack() {
   notify();
 }
 
+// ---------- Зелья ----------
+export const POT_MAX = 3, POT_KILLS = 25, POT_HEAL = 0.45;
+export function usePotion() {
+  const st = S();
+  if (st.potions < 1 || G.potCd > now() || st.hpFrac >= 1 || G.restUntil > now()) return;
+  st.potions--;
+  G.potCd = now() + 6000;
+  healPct(POT_HEAL);
+  G.poison = null;
+  emit('potion');
+  notify();
+}
+
 // ---------- Слабые места ----------
 function tickWeak(t) {
   const M = G.M;
@@ -442,7 +462,7 @@ export function hitWeak() {
   const pd = playerDie();
   let sum = 0;
   for (let i = 0; i < pd.n; i++) sum += pd.d;  // максимальный бросок
-  const dmg = (sum * tapPower() + partyDps() * S().tactic * 0.02) * tapMul() * 5 * (1 + tal('weak') * 0.5) * critDmgMul();
+  const dmg = (sum * tapPower() * tapMul() + partyDps() * (S().tactic * 0.02 + 1)) * 5 * (1 + tal('weak') * 0.5) * critDmgMul();
   G.vulnUntil = now() + 4000;
   G.tapRoll = { r: 20, text: 'СЛАБОЕ МЕСТО! ×5', n: G.tapRoll.n + 1 };
   damage(dmg, { src: 'tap', crit: true, weak: true, roll: 20 });
@@ -451,7 +471,7 @@ export function hitWeak() {
 
 // ---------- Лут ----------
 function maybeDrop(M) {
-  const chance = (M.tier ? 1 : M.mimic ? 1 : 0.03) * (1 + G.gear.loot / 100 + tal('scav') * 0.12);
+  const chance = (M.tier >= 2 ? 1 : M.tier ? 0.5 : M.mimic ? 1 : 0.02) * (1 + G.gear.loot / 100 + tal('scav') * 0.12);
   if (Math.random() >= chance) return;
   const minRar = M.tier === 3 ? 4 : M.tier === 2 ? 2 : M.tier === 1 ? 1 : 0;
   const lk = luck() + (M.tier ? 2 : 0) + (M.mimic ? 3 : 0);
@@ -460,7 +480,7 @@ function maybeDrop(M) {
 
 export function dropItem(ilvl, lk, adv, minRar = 0, slot) {
   const st = S();
-  const rr = rollRarity(lk, adv, minRar);
+  const rr = rollRarity(lk, adv, minRar, ilvl);
   const item = makeItem(st.nextItemId++, ilvl, rr.rar, slot);
   st.stats.items++;
   track('items');
@@ -593,7 +613,7 @@ export function playerAttack() {
   let sum = 0;
   for (let i = 0; i < pd.n; i++) sum += d(pd.d);
   const crit = counter || r >= tapCritMin();
-  const dmg = (sum * tapPower() + partyDps() * st.tactic * 0.02) * tapMul() * (crit ? 2 * critDmgMul() : 1);
+  const dmg = (sum * tapPower() * tapMul() + partyDps() * st.tactic * 0.02) * (crit ? 2 * critDmgMul() : 1);
   G.tapRoll = { r, text: counter ? 'КОНТРАТАКА!' : crit ? (r === 20 ? 'НАТУРАЛЬНАЯ 20!' : 'КРИТ!') : `${r}+${hit} · ${pd.n}d${pd.d}: ${sum}`, n: G.tapRoll.n + 1 };
   if (M.traits.includes('thorns')) {
     st.hpFrac = Math.max(0.01, st.hpFrac - 0.01);
@@ -615,7 +635,7 @@ export function buyHero(h) {
   st.heroes[h.id] += k;
   if (!was) toast(`${h.name} присоединяется к отряду!`, 'epic');
   else {
-    const ms = HERO_MILESTONES.filter(m => was < m && st.heroes[h.id] >= m).pop();
+    const ms = Math.floor(st.heroes[h.id] / 25) > Math.floor(was / 25) ? Math.floor(st.heroes[h.id] / 25) * 25 : 0;
     if (ms) toast(`${h.name}: уровень ${ms} — урон ×2!`, 'gold');
   }
   notify();
@@ -632,7 +652,7 @@ export const PLAYER_UPGRADES = [
   { id: 'acc', icon: 'target', name: 'Ловкость', c: '#62a850', max: 15,
     info: () => `+${S().acc} к атаке (всего +${playerHit()}), +${Math.floor(S().acc / 3)} к блоку`,
     lvl: () => S().acc, cost: () => 150 * 4.5 ** S().acc, buy: () => { S().acc++; } },
-  { id: 'tactic', icon: 'scroll', name: 'Тактика', c: '#e6b440', max: 50,
+  { id: 'tactic', icon: 'scroll', name: 'Тактика', c: '#e6b440', max: 25,
     info: () => `Тап добавляет ${S().tactic * 2}% урона/сек отряда`,
     lvl: () => S().tactic, cost: () => 800 * 2.8 ** S().tactic, buy: () => { S().tactic++; } },
 ];
@@ -705,7 +725,7 @@ export function wipe() {
   afterReset();
 }
 function afterReset() {
-  G.timers = {}; G.lastRolls = {}; G.restUntil = 0; G.counter = false;
+  G.timers = {}; G.lastRolls = {}; G.restUntil = 0; G.counter = false; G.poison = null;
   recalcGear();
   ensureContracts();
   save();
@@ -713,8 +733,8 @@ function afterReset() {
 }
 
 // ---------- Сундук ----------
-export const chest = { visible: false, at: now() + rnd(40, 80) * 1000, gone: 0 };
-function chestDelay() { return rnd(70, 160) * 1000 / (uq('ethereal') ? 2 : 1); }
+export const chest = { visible: false, at: now() + rnd(120, 200) * 1000, gone: 0 };
+function chestDelay() { return rnd(150, 300) * 1000 / (uq('ethereal') ? 2 : 1); }
 function tickChest(t) {
   if (!chest.visible && t >= chest.at && S().maxFloor >= 3) { chest.visible = true; chest.gone = t + 15000; notify(); }
   else if (chest.visible && t >= chest.gone) { chest.visible = false; chest.at = t + chestDelay(); notify(); }
@@ -751,8 +771,16 @@ function frame(t) {
   const M = G.M;
   const resting = G.restUntil > tm;
 
-  if (resting) healPct(dt / 5);
+  if (resting) { healPct(dt / 5); G.poison = null; }
   else {
+    if (G.poison) {
+      if (tm > G.poison.until) G.poison = null;
+      else {
+        const before = st.hpFrac;
+        st.hpFrac -= G.poison.dps * dt / partyMaxHP();
+        if (st.hpFrac <= 0 && before > 0) { st.hpFrac = 0; G.poison = null; partyFell(); }
+      }
+    }
     healPct(dt * 0.005);
     HEROES.forEach((h, i) => {
       if (!st.heroes[h.id]) { G.timers[h.id] = 0; return; }
@@ -770,7 +798,7 @@ function frame(t) {
       if (M.charge) {
         if (tm >= M.charge.end) { monsterAttack(true); M.charge = null; M.atkT = 0; }
       } else {
-        M.atkT += dt;
+        M.atkT += dt * (M.traits.includes('enrage') && M.hp < M.maxHp * 0.3 ? 1.5 : 1);
         if (M.atkT >= M.atkInt) {
           M.atkT = 0;
           M.atkCount++;
@@ -844,10 +872,30 @@ function load() {
       st.shards += refund;
     }
     st.hpFrac = 1;
+    // 2.1: новая кривая силы — текущий поход закрывается как кампания, реликвии возвращаются осколками
+    if (data.ver === '2.0') {
+      const OLD = { blade: [2, 1.55], aegis: [2, 1.55], greed: [2, 1.55], heir: [6, 3], luck: [4, 2], hourglass: [3, 1.9],
+        tome: [4, 2], scholar: [3, 1.8], forge: [3, 2], bag: [3, 2.2], prism: [8, 1.8] };
+      let refund = 0;
+      Object.entries(st.relics || {}).forEach(([id, l]) => {
+        const [b, gr] = OLD[id] || [2, 1.6];
+        for (let i = 0; i < l; i++) refund += Math.ceil(b * gr ** i);
+      });
+      const mf = st.maxFloor;
+      const gain = mf >= PRESTIGE_FLOOR ? Math.floor(((mf - 20) / 10) ** 1.3) : 0;
+      const fresh = freshState();
+      Object.assign(st, {
+        relics: {}, shards: st.shards + refund + gain, shardsTotal: st.shardsTotal + gain, campaigns: st.campaigns + 1,
+        gold: 0, floor: 1, maxFloor: 1, kills: 0, auto: true, heroes: fresh.heroes, str: 0, dieTier: 0, acc: 0, tactic: 0,
+        lvl: 1, xp: 0, talents: {}, abil: {}, curses: [], potions: 2, potKills: 0,
+      });
+      G.migrated = { refund, gain, floor: mf };
+      data.lastSave = now();
+    }
   }
   G.S = st;
   recalcGear();
-  if (G.showChangelog) {
+  if (G.showChangelog && !G.migrated) {
     const sf = safeFloor();
     if (sf < st.floor) { st.floor = sf; st.auto = false; st.kills = 0; }
   }
@@ -882,7 +930,7 @@ export function start() {
 }
 function dropItemQuiet() {
   const st = S();
-  const rr = rollRarity(luck(), false, 0);
+  const rr = rollRarity(luck(), false, 0, st.floor);
   const item = makeItem(st.nextItemId++, st.floor, rr.rar);
   st.stats.items++;
   if (rr.rar <= st.autoSalvage || st.inv.length >= invCap()) { st.dust += salvageValue(item); return { item, salvaged: true }; }

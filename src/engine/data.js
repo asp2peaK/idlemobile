@@ -7,15 +7,15 @@ export const HEROES = [
   { id: 'ranger',    name: 'Следопыт',  c: '#62a850', die: 8,  n: 1, int: 1.2, power: 12,     cost: 900,    hit: 6,
     perk: 'Меткость: +6 к попаданию' },
   { id: 'cleric',    name: 'Жрец',      c: '#e6b440', die: 6,  n: 1, int: 2.0, power: 50,     cost: 7000,   hit: 2, goldPct: 2, heal: 1,
-    perk: 'Лечение: лечит отряд каждую атаку, +2% золота за ур.' },
+    perk: 'Лечение: лечит отряд каждую атаку, +10% золота за 25 ур.' },
   { id: 'wizard',    name: 'Волшебник', c: '#5a86ee', die: 12, n: 1, int: 3.0, power: 260,    cost: 6e4,    hit: 0, auto: true,
     perk: 'Огненный шар: всегда попадает' },
   { id: 'paladin',   name: 'Паладин',   c: '#eadba6', die: 10, n: 1, int: 2.0, power: 900,    cost: 5e5,    hit: 3, critMul: 4, acPer: 10,
     perk: 'Аура защиты: +1 КД отряда за 10 ур., крит ×4' },
   { id: 'bard',      name: 'Бард',      c: '#dc64aa', die: 6,  n: 1, int: 2.5, power: 3000,   cost: 4e6,    hit: 2, dmgPct: 1,
-    perk: 'Вдохновение: +1% урона всем за уровень' },
+    perk: 'Вдохновение: +10% урона всем за 25 ур.' },
   { id: 'barbarian', name: 'Варвар',    c: '#de7a32', die: 12, n: 1, int: 1.4, power: 1.6e4,  cost: 3e7,    hit: 2, adv: true, hpPct: 1,
-    perk: 'Стойкость: +1% ХП отряда за ур., всегда с преимуществом' },
+    perk: 'Стойкость: +10% ХП отряда за 25 ур., всегда с преимуществом' },
   { id: 'druid',     name: 'Друид',     c: '#3c9a72', die: 8,  n: 3, int: 2.5, power: 6e4,    cost: 2.5e8,  hit: 3, heal: 0.5,
     perk: 'Дикий облик: 3d8, немного лечит отряд' },
   { id: 'warlock',   name: 'Колдун',    c: '#a050ea', die: 20, n: 1, int: 2.0, power: 4e5,    cost: 2e9,    hit: 4, critMin: 18,
@@ -42,16 +42,16 @@ export const PLAYER_DICE = [
 // =============== Биомы ===============
 // kind — какой фон рисовать; arch — какие монстры водятся; hue — оттенки кожи монстров
 export const BIOMES = [
-  { name: 'Подземелье',        kind: 'dungeon', hue: [70, 120],  sat: 24, arch: ['goblin', 'slime', 'bat', 'spider'], boss: 'goblin', adj: 'Пещерный',     glow: '#ff9a3a', particles: 'dust' },
-  { name: 'Тёмный лес',        kind: 'forest',  hue: [20, 45],   sat: 40, arch: ['beast', 'spider', 'goblin', 'bat'],   boss: 'beast',  adj: 'Лесной',      glow: '#7ac860', particles: 'spores' },
-  { name: 'Склепы',            kind: 'crypt',   hue: [250, 290], sat: 25, arch: ['skull', 'ghost', 'bat'],              boss: 'skull',  adj: 'Могильный',   glow: '#9a7aff', particles: 'wisps' },
-  { name: 'Гнилые топи',       kind: 'swamp',   hue: [65, 100],  sat: 45, arch: ['slime', 'eye', 'beast', 'spider'],    boss: 'slime',  adj: 'Болотный',    glow: '#b0d040', particles: 'spores' },
-  { name: 'Огненные пещеры',   kind: 'lava',    hue: [0, 25],    sat: 60, arch: ['demon', 'golem', 'slime', 'bat'],     boss: 'dragon', adj: 'Огненный',    glow: '#ff5a1a', particles: 'embers' },
-  { name: 'Ледяной пик',       kind: 'ice',     hue: [185, 215], sat: 45, arch: ['golem', 'beast', 'ghost'],            boss: 'golem',  adj: 'Ледяной',     glow: '#7ad0ff', particles: 'snow' },
-  { name: 'Руины пустыни',     kind: 'ruins',   hue: [30, 45],   sat: 50, arch: ['skull', 'spider', 'golem', 'slime'],  boss: 'spider', adj: 'Песчаный',    glow: '#ffc04a', particles: 'dust' },
-  { name: 'Небесная цитадель', kind: 'sky',     hue: [40, 60],   sat: 30, arch: ['eye', 'golem', 'ghost', 'bat'],       boss: 'eye',    adj: 'Небесный',    glow: '#fff0a0', particles: 'motes' },
-  { name: 'Бездна',            kind: 'abyss',   hue: [280, 330], sat: 55, arch: ['eye', 'demon', 'spider', 'ghost'],    boss: 'demon',  adj: 'Бездонный',   glow: '#d040ff', particles: 'wisps' },
-  { name: 'Астрал',            kind: 'astral',  hue: [160, 340], sat: 60, arch: ['eye', 'ghost', 'dragon', 'golem'],    boss: 'dragon', adj: 'Звёздный',    glow: '#60f0ff', particles: 'stars' },
+  { name: 'Подземелье',        kind: 'dungeon', hue: [70, 120],  sat: 24, arch: ['goblin', 'slime', 'bat', 'spider', 'orc'], boss: 'goblin', adj: 'Пещерный',     glow: '#ff9a3a', particles: 'dust' },
+  { name: 'Тёмный лес',        kind: 'forest',  hue: [20, 45],   sat: 40, arch: ['beast', 'spider', 'goblin', 'mushroom', 'orc'], boss: 'beast',  adj: 'Лесной',      glow: '#7ac860', particles: 'spores' },
+  { name: 'Склепы',            kind: 'crypt',   hue: [250, 290], sat: 25, arch: ['skull', 'ghost', 'bat', 'beetle'], boss: 'skull',  adj: 'Могильный',   glow: '#9a7aff', particles: 'wisps' },
+  { name: 'Гнилые топи',       kind: 'swamp',   hue: [65, 100],  sat: 45, arch: ['slime', 'eye', 'mushroom', 'serpent', 'spider'], boss: 'serpent',  adj: 'Болотный',    glow: '#b0d040', particles: 'spores' },
+  { name: 'Огненные пещеры',   kind: 'lava',    hue: [0, 25],    sat: 60, arch: ['demon', 'golem', 'elemental', 'beetle', 'bat'], boss: 'dragon', adj: 'Огненный',    glow: '#ff5a1a', particles: 'embers' },
+  { name: 'Ледяной пик',       kind: 'ice',     hue: [185, 215], sat: 45, arch: ['golem', 'beast', 'ghost', 'elemental'], boss: 'golem',  adj: 'Ледяной',     glow: '#7ad0ff', particles: 'snow' },
+  { name: 'Руины пустыни',     kind: 'ruins',   hue: [30, 45],   sat: 50, arch: ['skull', 'spider', 'beetle', 'serpent'], boss: 'beetle', adj: 'Песчаный',    glow: '#ffc04a', particles: 'dust' },
+  { name: 'Небесная цитадель', kind: 'sky',     hue: [40, 60],   sat: 30, arch: ['eye', 'golem', 'ghost', 'elemental'], boss: 'eye',    adj: 'Небесный',    glow: '#fff0a0', particles: 'motes' },
+  { name: 'Бездна',            kind: 'abyss',   hue: [280, 330], sat: 55, arch: ['eye', 'demon', 'spider', 'serpent', 'orc'], boss: 'demon',  adj: 'Бездонный',   glow: '#d040ff', particles: 'wisps' },
+  { name: 'Астрал',            kind: 'astral',  hue: [160, 340], sat: 60, arch: ['eye', 'ghost', 'dragon', 'elemental', 'golem'], boss: 'dragon', adj: 'Звёздный',    glow: '#60f0ff', particles: 'stars' },
 ];
 export const FLOORS_PER_BIOME = 10;
 
@@ -67,11 +67,17 @@ export const ARCH_NAMES = {
   golem:  ['Голем', 'Истукан', 'Колосс'],
   demon:  ['Демон', 'Бес', 'Изверг'],
   dragon: ['Змей', 'Дракон', 'Виверн'],
+  orc:       ['Орк', 'Громила', 'Вождь'],
+  mushroom:  ['Миконид', 'Гриболюд', 'Спорник'],
+  serpent:   ['Наг', 'Аспид', 'Василиск'],
+  beetle:    ['Скарабей', 'Жук-могильщик', 'Панцирник'],
+  elemental: ['Элементаль', 'Дух стихии', 'Первородный'],
 };
 export const BOSS_TITLES = {
   goblin: 'Король гоблинов', slime: 'Великая слизь', bat: 'Князь ночи', spider: 'Матерь пауков',
   beast: 'Вожак стаи', skull: 'Король-лич', ghost: 'Безликий', eye: 'Всевидящий',
   golem: 'Древний колосс', demon: 'Князь демонов', dragon: 'Пожиратель миров',
+  orc: 'Военный вождь', mushroom: 'Грибной король', serpent: 'Царь-змей', beetle: 'Бог-скарабей', elemental: 'Владыка стихий',
 };
 export const BOSS_SYL_A = ['Гро', 'Мор', 'Зул', 'Кха', 'Вел', 'Ург', 'Сар', 'Нек', 'Баэ', 'Тор', 'Ксар', 'Ил', 'Азг', 'Дру', 'Фен'];
 export const BOSS_SYL_B = ['гаш', 'бул', 'зор', 'рак', 'мот', 'нир', 'тус', 'гор', 'даэль', 'лит', 'вакс', 'ог', 'рот', 'муль'];
@@ -86,9 +92,9 @@ export const ABILITIES = [
 
 // =============== Реликвии (престиж) ===============
 export const RELICS = [
-  { id: 'blade',     name: 'Клинок предков',     icon: 'blade',     base: 2, growth: 1.55, max: Infinity, desc: l => `+${l * 20}% урона` },
-  { id: 'aegis',     name: 'Эгида',              icon: 'shield',    base: 2, growth: 1.55, max: Infinity, desc: l => `+${l * 20}% ХП отряда` },
-  { id: 'greed',     name: 'Жадность дракона',   icon: 'hoard',     base: 2, growth: 1.55, max: Infinity, desc: l => `+${l * 15}% золота` },
+  { id: 'blade',     name: 'Клинок предков',     icon: 'blade',     base: 2, growth: 1.7, max: Infinity, desc: l => `Урон ×${(1.15 ** l).toFixed(2)} (×1.15 за уровень)` },
+  { id: 'aegis',     name: 'Эгида',              icon: 'shield',    base: 2, growth: 1.7, max: Infinity, desc: l => `ХП отряда ×${(1.15 ** l).toFixed(2)} (×1.15 за уровень)` },
+  { id: 'greed',     name: 'Жадность дракона',   icon: 'hoard',     base: 2, growth: 1.7, max: Infinity, desc: l => `+${l * 15}% золота` },
   { id: 'heir',      name: 'Родовой герб',       icon: 'banner',    base: 6, growth: 3,    max: 2,        desc: l => `Фамильных вещей при новой кампании: ${1 + l}` },
   { id: 'luck',      name: 'Кость удачи',        icon: 'die',       base: 4, growth: 2,    max: 8,        desc: l => `+${l} к удаче (редкость лута)` },
   { id: 'hourglass', name: 'Песочные часы',      icon: 'hourglass', base: 3, growth: 1.9,  max: 8,        desc: l => `+${l * 3} сек на босса` },
@@ -115,6 +121,8 @@ export const TRAITS = [
   { id: 'thorns',   name: 'Шипастый',      color: '#c08a3a', desc: 'Тап ранит отряд' },
   { id: 'brute',    name: 'Громила',       color: '#d05050', desc: 'Урон ×1.8' },
   { id: 'evasive',  name: 'Увёртливый',    color: '#60c0e0', desc: 'Слабые места не появляются' },
+  { id: 'poison',   name: 'Ядовитый',      color: '#90e040', desc: 'Удары отравляют отряд на 5 сек' },
+  { id: 'enrage',   name: 'Бешенство',     color: '#ff2a2a', desc: 'При ХП ниже 30% бьёт вдвое сильнее и чаще' },
 ];
 
 // =============== 2.0: Таланты персонажа (сбрасываются каждую кампанию) ===============
@@ -161,14 +169,13 @@ export const CURSES = [
   { id: 'naked',  name: 'Нагота',      desc: 'Нельзя надевать снаряжение',     bonus: 0.8 },
 ];
 
-export const VERSION = '2.0';
+export const VERSION = '2.1';
 export const CHANGELOG = [
-  'Монстры бьют в ответ: у отряда есть ХП и КД, монстры атакуют броском d20. Отряд может пасть!',
-  'Мощные удары: монстр замахивается — жми «Блок» и делай спасбросок.',
-  'Слабые места: бей по светящейся руне на монстре — урон ×5.',
-  'Свойства монстров: Бронированный, Регенерация, Призрачный, Вампир, Шипастый и другие.',
-  'Уровень персонажа и дерево талантов из 3 ветвей — новый билд каждую кампанию.',
-  'Таверна: контракты с наградами.',
-  'Новая кампания: снаряжение сгорает, кроме фамильных вещей. Проклятия за бонус осколков.',
-  'Баланс: прогресс медленнее, осколков меньше, лут слабее, но ценнее.',
+  'Новый баланс: урон героев растёт вместе с силой монстров — нет лёгкой прогулки до 100 и стены после.',
+  'Монстры бьют больнее, отряд может пасть на любой глубине — следи за ХП.',
+  'Зелья лечения: кнопка рядом с умениями, заряды копятся за убийства. Пей вовремя!',
+  'Новые свойства монстров: Ядовитый и Бешенство.',
+  '5 новых видов монстров: орк, миконид, наг, жук-скарабей, элементаль.',
+  'Легендарки намного реже, редкость ограничена глубиной: эпики с 15 эт., легендарки с 40, мифики с 100.',
+  'Осколков меньше, сундуки реже.',
 ];

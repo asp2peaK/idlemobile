@@ -193,6 +193,7 @@ export const SlotIcon = memo(function SlotIcon({ slot }) {
 
 // ---------- Разные иконки ----------
 const MISC = {
+  potion: <><path d="M26,6 H38 V20 Q54,28 54,42 Q54,58 32,58 Q10,58 10,42 Q10,28 26,20Z" fill="#e8f0ff" opacity=".35" {...S} /><path d="M13,40 Q32,34 51,40 Q52,56 32,56 Q12,56 13,40Z" fill="#e0204a" /><path d="M24,2 H40 V8 H24Z" fill="#8a5a2a" {...S} /><path d="M18,34 Q20,28 26,26" stroke="#fff" strokeWidth="3" fill="none" opacity=".7" strokeLinecap="round" /><circle cx="38" cy="46" r="3" fill="#ff8aa0" /></>,
   shield: <><path d="M32,4 L56,12 Q56,40 32,60 Q8,40 8,12Z" fill="url(#metal)" {...S} /><path d="M32,10 L50,16 Q50,38 32,53 Q14,38 14,16Z" fill="#3a6ad0" /><path d="M32,18 V46 M20,28 H44" stroke="#ffe680" strokeWidth="5" strokeLinecap="round" /></>,
   heart: <><path d="M32,56 C10,40 4,28 8,18 C12,8 26,6 32,18 C38,6 52,8 56,18 C60,28 54,40 32,56Z" fill="#e0304a" {...S} /><path d="M18,18 Q20,14 25,14" stroke="#fff" strokeWidth="3" fill="none" opacity=".7" strokeLinecap="round" /></>,
   mug: <><path d="M12,18 H44 V52 Q44,58 38,58 H18 Q12,58 12,52Z" fill="#8a5a2a" {...S} /><path d="M44,24 H52 Q58,24 58,32 V38 Q58,46 50,46 H44" fill="none" stroke="#1a0e08" strokeWidth="6" /><path d="M44,24 H52 Q58,24 58,32 V38 Q58,46 50,46 H44" fill="none" stroke="#8a5a2a" strokeWidth="3" /><path d="M10,18 Q12,6 22,10 Q28,2 36,8 Q46,6 46,18Z" fill="#fff8e0" {...S} /><path d="M20,26 V50 M28,26 V50 M36,26 V50" stroke="#5a3418" strokeWidth="2" /></>,

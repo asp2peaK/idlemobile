@@ -76,23 +76,28 @@ function fmtPct(v) {
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const d20 = () => 1 + Math.floor(Math.random() * 20);
 
-export const ilvlScale = ilvl => 1 + ilvl * 0.05;
+export const ilvlScale = ilvl => 1 + ilvl * 0.03;
 export const plusMul = plus => 1 + plus * 0.08;
 
-// Бросок на редкость: d20 + удача. Нат. 20 → легендарка, и ещё бросок на подтверждение → мифик
-export function rollRarity(luck, adv, minRar = 0) {
+// Потолок редкости зависит от глубины: до 15 эт. — редкий, до 40 — эпик, до 100 — легендарка, дальше мифик
+export function maxRarity(ilvl) { return ilvl < 15 ? 2 : ilvl < 40 ? 3 : ilvl < 100 ? 4 : 5; }
+
+// Бросок на редкость: d20 + удача. Нат. 20 → эпик; подтверждение 17+ → легендарка; нат. 20 на подтверждении → мифик
+export function rollRarity(luck, adv, minRar = 0, ilvl = 0) {
   let r = d20();
   if (adv) r = Math.max(r, d20());
   let rar;
   let confirm = null;
   if (r === 20) {
-    confirm = d20() + luck;
-    rar = confirm >= 19 ? 5 : 4;
+    const c = d20();
+    confirm = c + luck;
+    rar = c === 20 ? 5 : confirm >= 17 ? 4 : 3;
   } else {
-    const t = r + luck;
-    rar = t >= 21 ? 4 : t >= 18 ? 3 : t >= 14 ? 2 : t >= 9 ? 1 : 0;
+    const t = r + Math.floor(luck / 2);
+    rar = t >= 19 ? 3 : t >= 15 ? 2 : t >= 10 ? 1 : 0;
   }
-  return { roll: r, confirm, rar: Math.max(rar, minRar) };
+  const cap = maxRarity(ilvl);
+  return { roll: r, confirm, rar: Math.min(cap, Math.max(rar, Math.min(minRar, cap))) };
 }
 
 export function makeItem(id, ilvl, rar, slot) {
